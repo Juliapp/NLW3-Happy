@@ -33,15 +33,9 @@ export default {
       images,
     });
 
-    await orphanagesRepository
-      .save(orphanage)
-      .then(() => {
-        return response.status(201).json(orphanagesView.render(orphanage));
-      })
-      .catch((error) => {
-        console.error(error);
-        response.status(404);
-      });
+    await orphanagesRepository.save(orphanage);
+
+    return response.status(201).json(orphanagesView.render(orphanage));
   },
 
   async index(request: Request, response: Response) {
@@ -56,16 +50,10 @@ export default {
     const { id } = request.params;
     const orphanagesRepository = getRepository(Orphanage);
 
-    await orphanagesRepository
-      .findOneOrFail(id, {
-        relations: ['images'],
-      })
-      .then((orphanage) => {
-        return response.status(200).json(orphanagesView.render(orphanage));
-      })
-      .catch((error) => {
-        console.error(error);
-        return response.status(404).send();
-      });
+    const orphanage = await orphanagesRepository.findOneOrFail(id, {
+      relations: ['images'],
+    });
+
+    return response.status(200).json(orphanagesView.render(orphanage));
   },
 };
