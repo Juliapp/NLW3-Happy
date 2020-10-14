@@ -15,6 +15,12 @@ export default {
     } = request.body;
 
     const orphanagesRepository = getRepository(Orphanage);
+
+    const requestImages = request.files as Express.Multer.File[];
+    const images = requestImages.map((images) => {
+      return { path: images.filename };
+    });
+
     const orphanage = orphanagesRepository.create({
       name,
       latitude,
@@ -23,16 +29,18 @@ export default {
       instructions,
       opening_hours,
       open_on_weekends,
+      images,
     });
 
-    try {
-      await orphanagesRepository.save(orphanage);
-    } catch (error) {
-      console.error(error);
-      response.status(404);
-    }
-
-    response.status(201).json(orphanage);
+    await orphanagesRepository
+      .save(orphanage)
+      .then(() => {
+        return response.status(201).json(orphanage);
+      })
+      .catch((error) => {
+        console.error(error);
+        response.status(404);
+      });
   },
 
   async index(request: Request, response: Response) {
