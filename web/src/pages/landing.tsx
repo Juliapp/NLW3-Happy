@@ -1,10 +1,9 @@
 import React from 'react';
 import { FiArrowRight } from 'react-icons/fi';
-
-import '../styles/pages/landing.css';
-
 import logoImg from '../images/Logo.svg';
 import { Link } from 'react-router-dom';
+
+import '../styles/pages/landing.css';
 function Landing() {
   return (
     <div id="page-landing">
@@ -16,8 +15,8 @@ function Landing() {
         </main>
 
         <div className="location">
-          <strong>Rio do sul</strong>
-          <span>Santa Catarina</span>
+          <strong>Feira de Santana</strong>
+          <span>Bahia</span>
         </div>
 
         <Link to="/app" className="enter-app">
