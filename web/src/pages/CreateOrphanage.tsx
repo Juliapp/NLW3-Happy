@@ -1,4 +1,4 @@
-import React, { FormEvent, useEffect, useState } from 'react';
+import React, { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import { Map, Marker, TileLayer } from 'react-leaflet';
 
 import { FiPlus } from 'react-icons/fi';
@@ -7,8 +7,11 @@ import '../styles/pages/create-orphanage.css';
 import Sidebar from '../components/Sidebar';
 import mapIcon from '../utils/mapIcon';
 import { latLng, LeafletMouseEvent } from 'leaflet';
+import api from '../services/api';
+import { useHistory } from 'react-router-dom';
 
 export default function CreateOrphanage() {
+  const history = useHistory();
   const [position, setPosition] = useState({ latitude: 0, longitude: 0 });
   const [mapArea, setMapArea] = useState({
     latitude: -12.2546377,
@@ -26,6 +29,10 @@ export default function CreateOrphanage() {
   const [opening_hours, setOpeningHours] = useState('');
   const [open_on_weekends, setOpenOnWeekends] = useState(false);
 
+  const [images, setImages] = useState<File[]>([]);
+
+  const [previewImages, setPreviewImages] = useState<string[]>([]);
+
   useEffect(() => {
     navigator.geolocation.getCurrentPosition((position) => {
       setMapArea({
@@ -35,18 +42,40 @@ export default function CreateOrphanage() {
     });
   }, []);
 
-  const handleOnSubmit = (event: FormEvent) => {
+  const handleOnSubmit = async (event: FormEvent) => {
     event.preventDefault();
     const { latitude, longitude } = position;
-    console.log({
-      name,
-      about,
-      instructions,
-      opening_hours,
-      open_on_weekends,
-      latitude,
-      longitude,
+    const data = new FormData();
+    data.append('name', name);
+    data.append('about', about);
+    data.append('instructions', instructions);
+    data.append('opening_hours', opening_hours);
+    data.append('open_on_weekends', String(open_on_weekends));
+    data.append('latitude', String(latitude));
+    data.append('longitude', String(longitude));
+    images.forEach((image) => {
+      data.append('images', image);
     });
+
+    await api.post('/orphanages', data);
+    alert('Cadastro realizado com sucecsso');
+
+    history.push('/app');
+  };
+
+  const handleSelectImages = (event: ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files) {
+      return;
+    }
+
+    const selectedImages = Array.from(event.target.files);
+    setImages(selectedImages);
+
+    const selectedImagesPreview = selectedImages.map((image) => {
+      return URL.createObjectURL(image);
+    });
+
+    setPreviewImages(selectedImagesPreview);
   };
 
   return (
@@ -106,11 +135,21 @@ export default function CreateOrphanage() {
             <div className="input-block">
               <label htmlFor="images">Fotos</label>
 
-              <div className="uploaded-image"></div>
-
-              <button className="new-image" type="button">
-                <FiPlus size={24} color="#15b6d6" />
-              </button>
+              <div className="images-container">
+                {previewImages.map((image) => {
+                  return <img key={image} src={image} alt={name} />;
+                })}
+                <label htmlFor="image[]" className="new-image">
+                  <FiPlus size={24} color="#15b6d6" />
+                </label>
+              </div>
+              <input
+                multiple
+                onChange={handleSelectImages}
+                type="file"
+                name=""
+                id="image[]"
+              />
             </div>
           </fieldset>
 
